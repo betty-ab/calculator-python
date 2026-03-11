@@ -4,14 +4,11 @@ import math
 history_list = []
 
 def on_history_click(event):
-    """When a user clicks a line in history, put that result into the entry."""
     try:
-        # Get the line that was clicked
         line_index = history_text.index(tk.CURRENT).split('.')[0]
         line_content = history_text.get(f"{line_index}.0", f"{line_index}.end")
         
         if "=" in line_content:
-            # Extract only the result (part after the '=')
             result_only = line_content.split('=')[1].strip()
             entry.delete(0, tk.END)
             entry.insert(tk.END, result_only)
@@ -24,10 +21,8 @@ def update_history(entry_text, result_text):
     history_text.delete("1.0", tk.END)
     
     for item in history_list[-10:]:
-        # Insert text and add a 'clickable' tag
         history_text.insert(tk.END, item + "\n", "clickable")
     
-    # Configure the tag to show a hand cursor so the user knows it's clickable
     history_text.tag_configure("clickable", foreground="#4DB6AC", font=("Consolas", 11, "bold"))
     history_text.tag_bind("clickable", "<Button-1>", on_history_click)
     
@@ -53,8 +48,7 @@ def calculate():
     try:
         expr = entry.get()
         if not expr: return
-        
-        # Auto-close brackets logic
+
         open_count = expr.count('(')
         close_count = expr.count(')')
         if open_count > close_count:
@@ -112,7 +106,7 @@ buttons = [
     ("log", "log("), ("√", "sqrt("), ("!", "factorial("), ("e", "e")
 ]
 
-row, col = 3, 0 # Started at 3 because of instruction label
+row, col = 3, 0 
 for (text, value) in buttons:
     if value == "equal":
         cmd = calculate
