@@ -3,12 +3,34 @@ import math
 
 history_list = []
 
+def on_history_click(event):
+    """When a user clicks a line in history, put that result into the entry."""
+    try:
+        # Get the line that was clicked
+        line_index = history_text.index(tk.CURRENT).split('.')[0]
+        line_content = history_text.get(f"{line_index}.0", f"{line_index}.end")
+        
+        if "=" in line_content:
+            # Extract only the result (part after the '=')
+            result_only = line_content.split('=')[1].strip()
+            entry.delete(0, tk.END)
+            entry.insert(tk.END, result_only)
+    except:
+        pass
+
 def update_history(entry_text, result_text):
     history_list.append(f"{entry_text} = {result_text}")
     history_text.config(state="normal")
     history_text.delete("1.0", tk.END)
+    
     for item in history_list[-10:]:
-        history_text.insert(tk.END, item + "\n")
+        # Insert text and add a 'clickable' tag
+        history_text.insert(tk.END, item + "\n", "clickable")
+    
+    # Configure the tag to show a hand cursor so the user knows it's clickable
+    history_text.tag_configure("clickable", foreground="#4DB6AC", font=("Consolas", 11, "bold"))
+    history_text.tag_bind("clickable", "<Button-1>", on_history_click)
+    
     history_text.config(state="disabled")
     history_text.see(tk.END)
 
@@ -31,6 +53,8 @@ def calculate():
     try:
         expr = entry.get()
         if not expr: return
+        
+        # Auto-close brackets logic
         open_count = expr.count('(')
         close_count = expr.count(')')
         if open_count > close_count:
@@ -60,22 +84,24 @@ def calculate():
     except Exception:
         show_error()
 
-
+# ---------- GUI Setup ----------
 root = tk.Tk()
 root.title("Modern Scientific Calculator")
-root.geometry("380x650")
+root.geometry("380x680")
 root.configure(bg="#1e1e1e")
-
 
 entry = tk.Entry(root, font=("Arial", 24), bg="#2b2b2b", fg="white",
                  insertbackground="white", justify="right", bd=0)
 entry.grid(row=0, column=0, columnspan=4, padx=15, pady=20, sticky="nsew")
 
-history_text = tk.Text(root, height=5, bg="#1e1e1e", fg="#888888",
-                        state="disabled", font=("Consolas", 11), bd=0)
-history_text.grid(row=1, column=0, columnspan=4, padx=15, pady=5, sticky="nsew")
+# Instruction Label
+instr = tk.Label(root, text="Click a previous result to reuse it", bg="#1e1e1e", fg="#555", font=("Arial", 9))
+instr.grid(row=1, column=0, columnspan=4)
 
-# Button Mapping (Text on Button, What it types in the screen)
+history_text = tk.Text(root, height=5, bg="#1e1e1e", fg="#888888",
+                        state="disabled", font=("Consolas", 11), bd=0, cursor="hand2")
+history_text.grid(row=2, column=0, columnspan=4, padx=15, pady=5, sticky="nsew")
+
 buttons = [
     ("C", "clear"), ("(", "("), (")", ")"), ("/", "/"),
     ("7", "7"), ("8", "8"), ("9", "9"), ("*", "*"),
@@ -86,7 +112,7 @@ buttons = [
     ("log", "log("), ("√", "sqrt("), ("!", "factorial("), ("e", "e")
 ]
 
-row, col = 2, 0
+row, col = 3, 0 # Started at 3 because of instruction label
 for (text, value) in buttons:
     if value == "equal":
         cmd = calculate
@@ -110,11 +136,8 @@ for (text, value) in buttons:
         col = 0
         row += 1
 
-# Bind Enter key to calculate
 root.bind('<Return>', lambda event: calculate())
-
-# Make layout responsive
-for i in range(2, 9): root.rowconfigure(i, weight=1)
+for i in range(3, 10): root.rowconfigure(i, weight=1)
 for i in range(4): root.columnconfigure(i, weight=1)
 
 root.mainloop()
